@@ -1,0 +1,34 @@
+Using pre-set license
+Built from '2021.3/china_unity/release' branch; Version is '2021.3.25f1c1 (61cd80e13b5c) revision 6409600'; Using compiler version '192829333'; Build Type 'Release'
+OS: 'Windows 10  (10.0.19045) 64bit CoreCountrySpecific' Language: 'zh' Physical Memory: 15773 MB
+BatchMode: 1, IsHumanControllingUs: 0, StartBugReporterOnCrash: 0, Is64bit: 1, IsPro: 1
+received signal from system: SIGSEGV
+Obtained 27 stack frames
+0x00007ff6dad6ca8d (Unity) 
+0x00007ff6dad73649 (Unity) 
+0x00007ff6dbd1f9d3 (Unity) 
+0x00007ff6dad72686 ((<unknown>)) 
+0x00007ff6dad6c0bc ((<unknown>)) 
+0x00007ff6dd17e14e ((<unknown>)) 
+0x00007ff6dd241468 ((<unknown>)) 
+0x00007ff6dd14aa80 ((<unknown>)) 
+0x00007ffd2e3723af ((<unknown>)) 
+0x00007ffd2e3214b4 ((<unknown>)) 
+0x00007ffd2e370ebe ((<unknown>)) 
+0x00007ff6da5d8ba0 ((<unknown>)) 
+0x00007ff6da5d5226 ((<unknown>)) 
+0x00007ff6da5dfbbe ((<unknown>)) 
+0x00007ff6d9fc6c27 ((<unknown>)) 
+0x00007ff6da570620 ((<unknown>)) 
+0x00007ff6daabdecc ((<unknown>)) 
+0x00007ff6dc27a0ac ((<unknown>)) 
+0x00007ff6dc27abdf ((<unknown>)) 
+0x00007ff6dc27aa72 ((<unknown>)) 
+0x00007ff6dc276cca ((<unknown>)) 
+0x00007ff6dc278e76 ((<unknown>)) 
+0x00007ff6db8b921b ((<unknown>)) 
+0x00007ff6dbd2a043 ((<unknown>)) 
+0x00007ff6dd1283ee ((<unknown>)) 
+0x00007ffd2d7a7344 ((<unknown>)) 
+0x00007ffd2e3226b1 ((<unknown>)) 
+
