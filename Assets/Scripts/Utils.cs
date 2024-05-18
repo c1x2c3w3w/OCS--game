@@ -7,6 +7,10 @@ public class Utils
     static int[,] OddRow = { { 1, 0 }, { 0, 1 }, { -1, 1 }, { -1, 0 }, { -1, -1 }, { 0, -1 } };
     // 偶数列      以六角格子最上面的边为第一方向即 0号边    按顺时针方向为 1号边 2号边... 分别与数组的索引对应
     static int[,] EvenRow = { { 1, 0 }, { 1, 1 }, { 0, 1 }, { -1, 0 }, { 0, -1 }, { 1, -1 } };
+    // 偶数列 被攻击后只能往后退
+    static int[,] EvenBackRow = { { 1, 0 }, { 1, 1 }, { 0, 0 }, { 0, 0 }, { 0, 0 }, { 1, -1 } };
+    // 奇数列
+    static int[,] OddBackRow = { { 1, 0 }, { 0, 1 }, { 0, 0 }, { 0, 0 }, { 0, 0 }, { 0, -1 } };
     public class Tuple<T1, T2>
     {
         public T1 Item1;
@@ -18,18 +22,44 @@ public class Utils
             Item2 = item2;
         }
     }
-
     const int N = 110;
-
     static int[,] g = new int[N, N];
     static int[,] d = new int[N, N];
     static int n = 36;
     static int m = 64;
-
-    
     // Define a Queue for BFS
     static Queue<Tuple<int, int>> q = new Queue<Tuple<int, int>>();
-    public static int JudgeDirection(Vector2Int targetRowcol, Vector2Int currentRowcol)
+
+    public static int JudgeBackDirection(Vector2Int targetRowcol, Unit u)
+    {
+        // 判断奇偶列    如果是偶数列 则使用EvenRow数组
+        if (u.col % 2 == 0)
+        {
+            for (int i = 0; i < 6; i++)
+            { 
+                if (u.row + EvenBackRow[i, 0] == targetRowcol.x &&
+                    u.col + EvenBackRow[i, 1] == targetRowcol.y)
+                {
+                    return i;
+                }
+            }
+        }
+        else
+        {
+            for (int i = 0; i < 6; i++)
+            {
+                // 判断由当前格 变到 目标格 的条件    条件满足就返回索引值以确定方向
+                if (u.row + OddBackRow[i, 0] == targetRowcol.x &&
+                    u.col + OddBackRow[i, 1] == targetRowcol.y)
+                {
+                    return i;
+                }
+            }
+
+        }
+        return -1;
+    }
+        public static int JudgeDirection(Vector2Int targetRowcol, Vector2Int currentRowcol)
     {
         // 判断奇偶列    如果是偶数列 则使用EvenRow数组
         if (currentRowcol.y % 2 == 0)

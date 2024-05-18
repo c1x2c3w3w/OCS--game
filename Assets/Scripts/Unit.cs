@@ -5,7 +5,7 @@ using UnityEngine;
 public class Unit : MonoBehaviour
 {
 
-    public int row, col;
+    public int row, col;            //  算子位置
     public int counterID;           //  算子ID
     public string division;         //  师的编号
     public bool fullState;          //  状态值：  true  战斗模式状态面（正面）   false  移动模式面（反面）
