@@ -4339,6 +4339,7 @@ MonoBehaviour:
   unitPrefab: {fileID: 1429183050424706056, guid: 36406f636ab729249805c79bbcaa3345, type: 3}
   mouseLeftClickCoolDown: 0
   mouseRightClickCoolDown: 0
+  mouseClickCoolDown: 0
   stratageMovingState: 0
   combatState: 0
   movingState: 0
@@ -4657,7 +4658,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -0, y: 155}
+  m_AnchoredPosition: {x: -0, y: 0}
   m_SizeDelta: {x: 500, y: 150}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &2115546469

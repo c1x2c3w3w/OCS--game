@@ -77,6 +77,7 @@
     <Compile Include="Assets\Scripts\MessageBox.cs" />
     <Compile Include="Assets\Scripts\LookRuleTable.cs" />
     <Compile Include="Assets\Scripts\GameData.cs" />
+    <Compile Include="Assets\Scripts\DefenseArmy.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\TextMesh Pro\Shaders\TMPro.cginc" />

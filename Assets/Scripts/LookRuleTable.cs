@@ -125,7 +125,6 @@ public class LookRuleTable
         {
             Unit u = GameData.units[selectedJoinAttackArmyIndex[i]].GetComponent<Unit>();
             Attack += u.fullState ? Counter.counter[u.counterID].attackInjure : Counter.counter[u.counterID].attack;
-            Debug.Log("¹¥·½Õ½¶·Öµ£º" + Attack);
         }
         fight = Attack / Defense;
         DRM = selectedJoinAttackArmyIndex.Max() - armyInTargetHexGrid.Max();

@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-
+using System.Collections.Generic;
 public class ChooseGUI : MonoBehaviour
 {
     GameObject[] FightArmy;
@@ -100,12 +100,21 @@ public class ChooseGUI : MonoBehaviour
     {
         GameObject textArea = Utils.getChildObject(FightArmy[count], "chooseTextArea");
         textArea.GetComponent<Text>().text =  "部队编号:" + u.counterID.ToString();
-
+        if(u.remainDefense <= 0)
+        {
+            FightArmy[count].GetComponent<Image>().sprite = GetComponent<CounterImage>().getCounterPicture(-1);
+            textArea.GetComponent<Text>().text = "部队编号:";
+        }
     }
     private void UpdateDefenseArmyInSelectedGrid(int count, Unit u)
     {
         GameObject textArea2 = Utils.getChildObject(DefenseArmy[count], "chooseTextArea");
         textArea2.GetComponent<Text>().text = "部队编号:" + u.counterID.ToString();
+        if (u.remainDefense <= 0)
+        {
+            DefenseArmy[count].GetComponent<Image>().sprite = GetComponent<CounterImage>().getCounterPicture(-1);
+            textArea2.GetComponent<Text>().text = "部队编号:";
+        }
     }
     public static void ShowGameObject(GameObject gobj)
     {

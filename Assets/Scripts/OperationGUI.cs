@@ -74,8 +74,6 @@ public class OperationGUI : MonoBehaviour
 
         GameObject textDefense = Utils.getChildObject(textArea, "TextDefense");
         textDefense.GetComponent<Text>().text = "防守值：" + u.remainDefense.ToString();
-        if(u.remainDefense <= 0) ArmyIconSelected[count].SetActive(false);
-        else ArmyIconSelected[count].SetActive(true);
 
         string moveReady = u.finishTurnMoved ? "本回合已移动" : " 本回合未移动";
         GameObject textTurnMoved = Utils.getChildObject(textArea, "TextTurnMoved");
@@ -85,7 +83,13 @@ public class OperationGUI : MonoBehaviour
         GameObject TextTurnRasiedAtt = Utils.getChildObject(textArea, "TextTurnRasiedAtt");
         TextTurnRasiedAtt.GetComponent<Text>().text = attackReady;
         // 其他状态值 to do 
-
+        if (u.remainDefense <= 0)
+        {
+            ArmyIconSelected[count].GetComponent<Image>().sprite = GetComponent<CounterImage>().getCounterPicture(-1);
+            textMovePoint.GetComponent<Text>().text = "移动力：" ;
+            textAttack.GetComponent<Text>().text = "进攻值：";
+            textDefense.GetComponent<Text>().text = "防守值：";
+        }
     }
 
     public static void ShowGameObject(GameObject gobj)

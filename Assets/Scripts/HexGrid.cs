@@ -57,10 +57,14 @@ public class HexGrid : MonoBehaviour
         for (int i = 0; i < GameData.units.Length; i++)
         {
             Unit u = GameData.units[i].GetComponent<Unit>();
-            if (u.row == rowcol.x && u.col == rowcol.y)
+            if(GameData.units[i].activeSelf == true)
             {
-                hexArmy.Add(i);   // 记录下第count个army的部队编号
+                if (u.row == rowcol.x && u.col == rowcol.y)
+                {
+                    hexArmy.Add(i);   // 记录下第count个army的部队编号
+                }
             }
+            
         }
         return hexArmy;  
     }  

@@ -9,8 +9,9 @@ public class TurnFlow
         StageReinforement = 0,          // 增援阶段
         StageMove = 1,                  // 移动阶段
         AirforceStageAttack = 2,        // 空军进攻阶段
-        ReactionStage = 3,              // 反应阶段
-        FightStage = 4                 // 战斗阶段
+        StageMove2 = 3,                 // 对手移动阶段
+        ReactionStage = 4,              // 反应阶段
+        FightStage = 5                 // 战斗阶段
     }
 
     public enum TurnPlayer
@@ -48,12 +49,23 @@ public class TurnFlow
         MessageBox.Show("空军射击阶段");
 
     }
+
+    public void GoIntoMoveStage2()
+    {
+        GameData.turnflow.turnStage = TurnFlow.TurnStage.StageMove2;   //  进入对手移动阶段
+        OperationGUI.ShowGameObject(movePanel);
+        OperationGUI.HideGameObject(attackPanel);
+        ChooseGUI.HideGameObject(choosePanel);
+        MessageBox.Show("对手移动阶段");
+    }
+
     public void GoIntoReactionStage()
     {
 
         GameData.turnflow.turnStage = TurnFlow.TurnStage.ReactionStage;   //  进入反应阶段
         OperationGUI.HideGameObject(movePanel);
         OperationGUI.ShowGameObject(attackPanel);
+        ChooseGUI.ShowGameObject(choosePanel);
         MessageBox.Show("反应阶段（对手）");
     }
     public void GoIntoFightStage()

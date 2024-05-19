@@ -51,7 +51,7 @@ public class GameController : MonoBehaviour
         for (int i = 0; i < choooseArmyIndex.Length; i++) { choooseArmyIndex[i] = -1; }
         selectedJoinchoooseArmyIndex = new List<int>();
         enemyArmyGrid.x = -1;   // 代表未选中任何格子用于执行进攻
-
+        GameData.turnflow.turnPlayer = TurnPlayer.PlayerChinese;
 
     }
     void Update()
@@ -204,7 +204,7 @@ public class GameController : MonoBehaviour
     {
         // 获取当前的 “回合阶段”
         TurnStage currentStage = GameData.turnflow.turnStage;
-
+        
         // 如果是增援阶段，直接退出
         if (currentStage == TurnStage.StageReinforement) return;
 
@@ -228,7 +228,6 @@ public class GameController : MonoBehaviour
             {
                 if (hexArmy.Count == 0)  // 说明格子中没有部队
                 {
-                    Debug.Log("count为：" + hexArmy.Count);
                     ErrorMessageBox.Show("错误：格子中没有部队，无法进攻该格子。");
                     return;
                 }
@@ -254,15 +253,15 @@ public class GameController : MonoBehaviour
         }
 
         // 如果是移动阶段
-        if(currentStage == TurnStage.StageMove)
+        if(currentStage == TurnStage.StageMove || currentStage == TurnStage.StageMove2)
         {
             if (CanMoveArmy(rowcol))    // 执行部队移动判断
             {
-
+                
                 // 进行移动，并且更新位置
                 Execute_Move_Action(rowcol);
                 selectedArmyIndex = GetComponent<OperationGUI>().showArmyInSelectdGrid(rowcol);
-
+                
 
                 // 移动到目标位置显示红框
                 hideAllRedBorder();
@@ -278,7 +277,26 @@ public class GameController : MonoBehaviour
      bool CanMoveArmy(Vector2Int targetRowcol)
     {
         // 首先判断当前是否为“移动阶段”, 不是移动阶段则直接退出
+        TurnPlayer currentPlayer = GameData.turnflow.turnPlayer;
+        int currentHex_CounterType = GameData.units[selectedArmyIndex[0]].GetComponent<Unit>().counterID;
+        int currentHex_armyNation = Counter.counter[currentHex_CounterType].nation;
+        if (currentPlayer == TurnPlayer.PlayerChinese)
+        {
+            if(currentHex_armyNation == 1)
+            {
+                ErrorMessageBox.Show("请选择志愿军");
+                return false;
+            }  
+        }
+        if (currentPlayer == TurnPlayer.PlayerAmerica)
+        {
+            if (currentHex_armyNation == 0)
+            {
+                ErrorMessageBox.Show("请选择美军");
+                return false;
+            }
 
+        }
         // 判断是否左键选择了部队
         if (selectedArmyIndex[0] == -1)
         {
@@ -288,7 +306,7 @@ public class GameController : MonoBehaviour
         // 判断移动的目标格是否与原格子相邻
         if (Utils.JudgeDirection(moveCurrentRowcol, targetRowcol) == -1)
         {
-            ErrorMessageBox.Show("请移动到相邻格");
+            //ErrorMessageBox.Show("请移动到相邻格");
             return false;
         }
         // 判断是否为空地
@@ -299,6 +317,11 @@ public class GameController : MonoBehaviour
             if (JudgeIsEnemy())
             {
                 ErrorMessageBox.Show("被阻挡无法移动");
+                return false;
+            }
+            if((armyInTargetHexGrid.Count + selectedArmyIndex.Length) > 4)
+            {
+                ErrorMessageBox.Show("格子部队已满");
                 return false;
             }
         }
@@ -390,7 +413,7 @@ public class GameController : MonoBehaviour
         int currentHex_CounterType = u.counterID;
         int currentHex_armyNation = Counter.counter[currentHex_CounterType].nation;
         // 目标格子的部队编号
-        int targetHex_CounterType = GameData.units[enemyInTargetHexGrid[0]].GetComponent<Unit>().counterID;
+        int targetHex_CounterType = GameData.units[armyInTargetHexGrid[0]].GetComponent<Unit>().counterID;
         int targetHex_armyNation = Counter.counter[targetHex_CounterType].nation;
         // 如果当前格子上和目标格子上的部队编号都是0，也就是志愿军
         if (currentHex_armyNation == 0 && currentHex_armyNation == targetHex_armyNation)
@@ -517,10 +540,14 @@ public class GameController : MonoBehaviour
         for (int i = 0; i < 4; i++)
         {
             GameObject armyIcon = GetComponent<OperationGUI>().getArmyIconSelectedFromIndex(i);
-            GameObject redRectBorder = Utils.getChildObject(armyIcon, "RedRectBorder");
+            if (armyIcon.GetComponent<Image>().sprite != GetComponent<CounterImage>().getCounterPicture(-1))
+            {
+                GameObject redRectBorder = Utils.getChildObject(armyIcon, "RedRectBorder");
 
-            if (redRectBorder.GetComponent<RedRectBorder>().isSelected)
-                list.Add(selectedArmyIndex[i]);
+                if (redRectBorder.GetComponent<RedRectBorder>().isSelected)
+                    list.Add(selectedArmyIndex[i]);
+            }
+           
         }
         return list;
     }
@@ -531,10 +558,12 @@ public class GameController : MonoBehaviour
         for (int i = 0; i < 10; i++)
         {
             GameObject armyIcon2 = GetComponent<ChooseGUI>().getFightIconSelectedFromIndex(i);
-            GameObject redRectBorder2 = Utils.getChildObject(armyIcon2, "RedSquareBorder");
+            if (armyIcon2.GetComponent<Image>().sprite != GetComponent<CounterImage>().getCounterPicture(-1))
+            {
+                GameObject redRectBorder2 = Utils.getChildObject(armyIcon2, "RedSquareBorder");
+                if (redRectBorder2.GetComponent<RedRectBorder>().isSelected2) list.Add(choooseArmyIndex[i]);
+            }
 
-            Debug.Log("外围的："+ armyIcon2 + redRectBorder2.GetComponent<RedRectBorder>().isSelected2);
-            if (redRectBorder2.GetComponent<RedRectBorder>().isSelected2)list.Add(choooseArmyIndex[i]);
            
         }
  
@@ -547,11 +576,14 @@ public class GameController : MonoBehaviour
         for (int i = 0; i < 5; i++)
         {
             GameObject armyIcon = GetComponent<ChooseGUI>().getDenfenseIconSelectedFromIndex(i);
-            GameObject redRectBorder = Utils.getChildObject(armyIcon, "RedSquareBorder");
-
-            if (redRectBorder.GetComponent<RedRectBorder>().isSelected2)
+            if (armyIcon.GetComponent<Image>().sprite != GetComponent<CounterImage>().getCounterPicture(-1))
             {
-                list.Add(choooseArmyIndex[i+ selectedJoinAttackArmyIndex.Count]);
+                GameObject redRectBorder = Utils.getChildObject(armyIcon, "RedSquareBorder");
+
+                if (redRectBorder.GetComponent<RedRectBorder>().isSelected2)
+                {
+                    list.Add(choooseArmyIndex[i + selectedJoinAttackArmyIndex.Count]);
+                }
             }
 
         }
@@ -678,6 +710,12 @@ public class GameController : MonoBehaviour
         {
             GameData.turnflow.GoIntoAirforceStageAttack();
             selectedArmyIndex = GetComponent<OperationGUI>().showArmyInSelectdGrid(moveCurrentRowcol);
+            
+        }
+        else if (GameData.turnflow.turnStage == TurnFlow.TurnStage.StageMove2)
+        { 
+            GameData.turnflow.GoIntoReactionStage();
+            selectedArmyIndex = GetComponent<OperationGUI>().showArmyInSelectdGrid(moveCurrentRowcol);
 
         }
 
@@ -716,6 +754,7 @@ public class GameController : MonoBehaviour
     {
         // 清除当前的 “进攻部队的队列”
         selectedJoinAttackArmyIndex.Clear();
+        choooseArmyIndex = GetComponent<ChooseGUI>().showChooseArmy(selectedJoinAttackArmyIndex, enemyInTargetHexGrid);
         MessageBox.Show("队列已清除");
     }
     public void OnBtnAttack()
@@ -724,12 +763,9 @@ public class GameController : MonoBehaviour
         // 参与进攻的所有部队，是“进攻部队的队列”中的所有部队
         // 被进攻的部队，是enemyArmyGrid变量的格中的所有敌军部队
 
-
-
         // 结算进攻结果
         if (CanAttackArmy(enemyArmyGrid))
         {
-           
             Execute_Attack_Action(enemyArmyGrid);
         }
         // 进攻结果结算完成后
@@ -753,23 +789,59 @@ public class GameController : MonoBehaviour
         }
         if (GameData.turnflow.turnStage == TurnFlow.TurnStage.AirforceStageAttack)
         {
-            GameData.turnflow.GoIntoReactionStage();
+            
+            GameData.turnflow.GoIntoMoveStage2();
+            GameData.turnflow.GoChangeTurnPlayer();
         }
+
         else if (GameData.turnflow.turnStage == TurnFlow.TurnStage.ReactionStage)
         {
+            
             GameData.turnflow.GoIntoFightStage();
+            GameData.turnflow.GoChangeTurnPlayer();
         }
         else if (GameData.turnflow.turnStage == TurnFlow.TurnStage.FightStage)
         {
             GameData.turnflow.GoIntoMoveStage();
+            // 进行完一个回合后移动力恢复为原来值 
+            int numUnits = UnitDataBase.Instance.units.Length;
+            for (int i = 0; i < numUnits; i++)
+            {
+                Unit unit = GameData.units[i].GetComponent<Unit>();
+                int countId = unit.counterID;
+                unit.movingPoint = unit.fullState ? Counter.counter[countId].moveAllow : Counter.counter[countId].moveAllowInjure;
+                unit.alreadyRaiseAttack = false;  //恢复为未攻击
+                unit.finishTurnMoved = false;  // 恢复为未移动
+            }
+            GameData.turnflow.GoChangeTurnPlayer();
+            selectedArmyIndex = GetComponent<OperationGUI>().showArmyInSelectdGrid(moveCurrentRowcol);
         }
-        
+
 
     }
 
     bool CanAddToAttackList(Vector2Int enemyArmyGrid, List<int> armyToAttack)
     {
+        TurnPlayer currentPlayer = GameData.turnflow.turnPlayer;
+        int currentHex_CounterType = GameData.units[selectedArmyIndex[0]].GetComponent<Unit>().counterID;
+        int currentHex_armyNation = Counter.counter[currentHex_CounterType].nation;
+        if (currentPlayer == TurnPlayer.PlayerChinese)
+        {
+            if (currentHex_armyNation == 1)
+            {
+                ErrorMessageBox.Show("请选择志愿军");
+                return false;
+            }
+        }
+        if (currentPlayer == TurnPlayer.PlayerAmerica)
+        {
+            if (currentHex_armyNation == 0)
+            {
+                ErrorMessageBox.Show("请选择美军");
+                return false;
+            }
 
+        }
        
         if (JudgeIsEnemy() == false)                                  //相同联军不能添加
         {
@@ -782,6 +854,23 @@ public class GameController : MonoBehaviour
             GameObject unitObject = GameData.units[index];
             Unit unit = unitObject.GetComponent<Unit>();
             int countId = unit.counterID;
+            TurnStage currentStage = GameData.turnflow.turnStage;
+            if (currentStage == TurnStage.AirforceStageAttack)
+            {
+                if(Counter.counter[countId].type != 3)
+                {
+                    ErrorMessageBox.Show("未选中空军");
+                    return false;
+                }
+            }
+            if (currentStage == TurnStage.ReactionStage)
+            {
+                if (Counter.counter[countId].type == 0 )
+                {
+                    ErrorMessageBox.Show("未选中射击部队");
+                    return false;
+                }
+            }
             if (unit.alreadyRaiseAttack == true)               //本回合已经攻击过的部队无法添加
             {
                 ErrorMessageBox.Show("已经发起过攻击，无法添加");
@@ -831,7 +920,12 @@ public class GameController : MonoBehaviour
     {
         if (enemyArmyGrid.x == -1)
         {
-            ErrorMessageBox.Show("错误：未选中进攻格子。");
+            ErrorMessageBox.Show("错误：未选中进攻格子");
+            return false;
+        }
+        if(selectedJoinAttackArmyIndex.Count == 0)
+        {
+            ErrorMessageBox.Show("错误：未选中进攻算子");
             return false;
         }
         return true;
@@ -846,7 +940,7 @@ public class GameController : MonoBehaviour
         Unit unit = unitObject.GetComponent<Unit>();
         TurnStage currentStage = GameData.turnflow.turnStage;
         // 按照规则进行查表计算
-        if (currentStage == TurnStage.AirforceStageAttack) //空军射击阶段
+        if (currentStage == TurnStage.AirforceStageAttack || currentStage == TurnStage.ReactionStage) //空军射击阶段、反应阶段
         {
             string injure;
             injure = LookRuleTable.LookUpRuleTable(selectedJoinAttackArmyIndex, armyInTargetHexGrid);
@@ -856,7 +950,6 @@ public class GameController : MonoBehaviour
             {
 
                 int ra = Random.Range(1, 7);
-                Debug.Log("投的骰子" + ra);
                 if (ra >= 4 && ra <= 6)
                 {
                     injury = 1;
@@ -890,18 +983,14 @@ public class GameController : MonoBehaviour
             selectedArmyIndex = GetComponent<OperationGUI>().showArmyInSelectdGrid(moveCurrentRowcol);
             MessageBox.Show("受伤值:" + injury);
             Debug.Log("受伤值为：" + injury);
+            afterAttack();
+            choooseArmyIndex = GetComponent<ChooseGUI>().showChooseArmy(selectedJoinAttackArmyIndex, enemyInTargetHexGrid);
         }
         
         if (currentStage == TurnStage.FightStage)
         {
-            //MatchCollection matches = Regex.Matches(LookRuleTable.LookUpFightRuleTable(selectedJoinAttackArmyIndex, armyInTargetHexGrid), @"(?<=A)(\w+)(\d+)|(?<=D)(\w+)(\d+)");
-
             StartCoroutine(MainPhase());
-
-        
-
-
-
+            
         }
         // 如果受伤值 = 1 需要把部队改为受伤状态
 
@@ -912,6 +1001,7 @@ public class GameController : MonoBehaviour
     IEnumerator MainPhase()
     {
         string input = LookRuleTable.LookUpFightRuleTable(selectedJoinAttackArmyIndex, enemyInTargetHexGrid);
+        yield return new WaitForSeconds(1f);
         var matchA = Regex.Match(input, @"A(?<A>([a-zA-Z]\d)+).*?D");
         var matchD = Regex.Match(input, @"D(?<D>[a-zA-Z0-9]+)");
 
@@ -922,8 +1012,13 @@ public class GameController : MonoBehaviour
             string twoChars = capturedValue.Substring(j, 2);
             Debug.Log($"A: {twoChars}");
             MessageBox.Show($"A: {twoChars}");
-            yield return StartCoroutine(FightPhase(twoChars));
-
+            bool shouldContinue = true;
+            yield return StartCoroutine(FightPhase(twoChars, result => shouldContinue = result));
+            if (!shouldContinue)
+            {
+            Debug.Log("终止MainPhase，因为enemyExist.Count == 0");
+            yield break; // 提前退出协程
+            }
         }
         // 执行 FightPhase
         string capturedValue2 = matchD.Groups["D"].Value;
@@ -934,78 +1029,155 @@ public class GameController : MonoBehaviour
 
             MessageBox.Show($"D: {twoChars}");
             // 执行 DefensePhase
-            yield return StartCoroutine(DefensePhase(twoChars));
-           
+            bool shouldContinue = true;
+            yield return StartCoroutine(DefensePhase(twoChars, result => shouldContinue = result));
 
+            if (!shouldContinue)
+            {
+                Debug.Log("终止MainPhase，因为enemyExist.Count == 0");
+                yield break; // 提前退出协程
+            }
         }
 
         afterAttack();
         choooseArmyIndex = GetComponent<ChooseGUI>().showChooseArmy(selectedJoinAttackArmyIndex, enemyInTargetHexGrid);
     }
-    IEnumerator FightPhase(string c)
+    IEnumerator FightPhase(string c, System.Action<bool> callback)
     {
         isWaitingForLeftClick = true; // 开始等待鼠标左键点击
+        bool shouldContinue = true;
+        // 获取 EventSystem 和 GraphicRaycaster                              
+        EventSystem eventSystem = EventSystem.current;
+        GraphicRaycaster graphicRaycaster = FindObjectOfType<GraphicRaycaster>();
+        // 等待直到左键被按下
+        while (isWaitingForLeftClick)
+        {
+            if (IsPointerOverUIElement(eventSystem, graphicRaycaster))
+            {
+                if (Input.GetMouseButtonDown(0))
+                {
+                    yield return new WaitForSeconds(1f); 
+                    List<int> enemyExist = new List<int>();
+                    List<int> Fightarmy = getChooseFightArmy();
+                    for (int k = 0; k < Fightarmy.Count; k++)
+                    {
+                        int fightIndex = Fightarmy[k];  // 部队编号
+                        GameObject unitobject = GameData.units[fightIndex];
+                        Unit u = unitobject.GetComponent<Unit>();
+                        yield return StartCoroutine(afterFightTable(c, u));
+                        if (u.remainDefense <= 0) GameData.units[fightIndex].SetActive(false);    //算子清除
+                        for (int j = 0; j < enemyInTargetHexGrid.Count; j++)
+                        {
+                            if (unitobject.activeSelf) enemyExist.Add(enemyInTargetHexGrid[j]);
+                        }
+                        choooseArmyIndex = GetComponent<ChooseGUI>().showChooseArmy(selectedJoinAttackArmyIndex, enemyExist);
+                        if (enemyExist.Count == 0)
+                        {
+                            shouldContinue = false;
+                            isWaitingForLeftClick = false; // 结束等待
+                            break; // 退出循环
+                        }
+                    }
+                    isWaitingForLeftClick = false; // 结束等待
+                }
+            }
+            yield return null;
+        }
+
+        callback(shouldContinue);
+    }
+
+
+    IEnumerator DefensePhase(string c, System.Action<bool> callback)
+    {
+        isWaitingForLeftClick = true; // 开始等待鼠标左键点击
+        bool shouldContinue = true;
+        // 获取 EventSystem 和 GraphicRaycaster                              
+        EventSystem eventSystem = EventSystem.current;
+        GraphicRaycaster graphicRaycaster = FindObjectOfType<GraphicRaycaster>();
+
         // 等待直到左键被按下
         while (isWaitingForLeftClick)
         {
             if (Input.GetMouseButtonDown(0))
             {
-                yield return new WaitForSeconds(1f); ;
-                List<int> Fightarmy = getChooseFightArmy();
-                Debug.Log("部队" + Fightarmy.Count);
-
-                for (int k = 0; k < Fightarmy.Count; k++)
+                if (IsPointerOverUIElement2(eventSystem, graphicRaycaster))
                 {
-                    int fightIndex = Fightarmy[k];  // 部队编号
-                    GameObject unitobject = GameData.units[fightIndex];
-                    Unit u = unitobject.GetComponent<Unit>();
-                    yield return StartCoroutine(afterFightTable(c, u));
-                    if (u.remainDefense <= 0) GameData.units[fightIndex].SetActive(false);    //算子清除
+                        
+                        yield return new WaitForSeconds(1f);
+                        List<int> enemyExist = new List<int>(); 
+                        List<int> Defensearmy = getChooseDefenseArmy();
+                        for (int k = 0; k < Defensearmy.Count; k++)
+                        {
+                            int DefenseIndex = Defensearmy[k];  // 部队编号
+                            GameObject unitobject = GameData.units[DefenseIndex];
+                            Unit u = unitobject.GetComponent<Unit>();
+                            yield return StartCoroutine(afterFightTable(c, u));
+                            if (u.remainDefense <= 0) GameData.units[DefenseIndex].SetActive(false);    //算子清除
+                            for (int j = 0; j < enemyInTargetHexGrid.Count; j++)
+                            {
+                            if (unitobject.activeSelf) enemyExist.Add(enemyInTargetHexGrid[j]);
+                            }
+                            choooseArmyIndex = GetComponent<ChooseGUI>().showChooseArmy(selectedJoinAttackArmyIndex, enemyExist);
+                            if (enemyExist.Count == 0)
+                            {
+                                shouldContinue = false;
+                                isWaitingForLeftClick = false; // 结束等待
+                                break; // 退出循环
+                            }
+                    }
+                        isWaitingForLeftClick = false; // 结束等待
+                    }
                     
                 }
-
-                isWaitingForLeftClick = false; // 结束等待
-            }
-            else yield return null;
+                yield return null;
         }
-        
-        choooseArmyIndex = GetComponent<ChooseGUI>().showChooseArmy(selectedJoinAttackArmyIndex, enemyInTargetHexGrid);
-        Debug.Log("Left mouse button is pressed. Continuing with the rest of the code...");
+        callback(shouldContinue);
         // 在这里执行需要在左键点击后执行的代码
     }
 
 
-    IEnumerator DefensePhase(string c)
+    bool IsPointerOverUIElement(EventSystem eventSystem, GraphicRaycaster graphicRaycaster)      //进行DG,L,O选择时确保点击在ChooseGUI里面
     {
-        isWaitingForLeftClick = true; // 开始等待鼠标左键点击
-        // 等待直到左键被按下
-        while (isWaitingForLeftClick)
+        PointerEventData pointerEventData = new PointerEventData(eventSystem)
         {
-            if (Input.GetMouseButtonDown(0))
-            {
-                Debug.Log("第二次左键！！！！！！！！");
-                yield return new WaitForSeconds(1f); 
-                List<int> Defensearmy = getChooseDefenseArmy();
-                for (int k = 0; k < Defensearmy.Count; k++)
-                {
-                    int DefenseIndex = Defensearmy[k];  // 部队编号
-                    GameObject unitobject = GameData.units[DefenseIndex];
-                    Unit u = unitobject.GetComponent<Unit>();
-                    yield return StartCoroutine(afterFightTable(c, u));
-                    if (u.remainDefense <= 0) GameData.units[DefenseIndex].SetActive(false);    //算子清除
-                    Debug.Log("部队编号" + Defensearmy[k]);
+            position = Input.mousePosition
+        };
 
-                }
-                isWaitingForLeftClick = false; // 结束等待
+        List<RaycastResult> raycastResults = new List<RaycastResult>();
+        graphicRaycaster.Raycast(pointerEventData, raycastResults);
+
+        foreach (RaycastResult result in raycastResults)
+        {
+            if (result.gameObject.GetComponent<FightArmy>() != null)
+            {
+                return true; // 检测到 FightArmy 组件
             }
-            else yield return null;
         }
-        choooseArmyIndex = GetComponent<ChooseGUI>().showChooseArmy(selectedJoinAttackArmyIndex, enemyInTargetHexGrid);
-        Debug.Log("Left mouse button is pressed. Continuing with the rest of the code...");
-        // 在这里执行需要在左键点击后执行的代码
+
+        return false; // 未检测到 FightArmy 组件
     }
 
+    bool IsPointerOverUIElement2(EventSystem eventSystem, GraphicRaycaster graphicRaycaster)      //进行DG,L,O选择时确保点击在ChooseGUI里面
+    {
+        PointerEventData pointerEventData = new PointerEventData(eventSystem)
+        {
+            position = Input.mousePosition
+        };
 
+        List<RaycastResult> raycastResults = new List<RaycastResult>();
+        graphicRaycaster.Raycast(pointerEventData, raycastResults);
+
+        foreach (RaycastResult result in raycastResults)
+        {
+            if (result.gameObject.GetComponent<DefenseArmy>() != null)
+            {
+                return true; // 检测到 DefenseArmy 组件
+            }
+        }
+
+        return false; // 未检测到 DefenseArmy 组件
+    }
     IEnumerator afterFightTable(string twoChars,Unit u)
     {
         int n = int.Parse(twoChars[1].ToString());
@@ -1038,7 +1210,7 @@ public class GameController : MonoBehaviour
 
     IEnumerator WaitForNumericInput(Unit u,char c)
     {
-        Debug.Log("等待键盘输入数字...");
+        MessageBox.Show("等待键盘输入数字:0是后退，1是损失");
         int n = int.Parse(c.ToString());
         bool judge = true;
         // 循环等待直到输入有效的数字键
@@ -1052,8 +1224,6 @@ public class GameController : MonoBehaviour
                     yield return new WaitForSeconds(1f);
                     yield return StartCoroutine(WaitForRightClickInput(n, u));
                 // 数字输入后继续执行后续代码
-
-
                 judge = false;
                 yield break;
                 }
@@ -1061,16 +1231,12 @@ public class GameController : MonoBehaviour
                 if (Input.GetKeyDown(KeyCode.Alpha1))
                 {
                     Debug.Log("输入数字:1 " + "损失");
-
-                    // 在检测到输入后等待0.1秒
                     yield return new WaitForSeconds(1f);
                     u.remainDefense -= n;
                 // 数字输入后继续执行后续代码
                     judge = false;
                     yield break;
                 }
-            
-
             // 等待下一帧
             yield return null;
         }
@@ -1080,10 +1246,8 @@ public class GameController : MonoBehaviour
     {
         bool isWaitingForRightClick = true; // 开始等待鼠标右键点击
         backAction = true;
-        bool back = true;
         for (int i = 0; i < n; i++)
         {
-        Debug.Log("pppppppppppppppppp");
         while (isWaitingForRightClick)  // 等待直到右键被按下
         {
                 if (Input.GetMouseButtonDown(1))
@@ -1093,27 +1257,29 @@ public class GameController : MonoBehaviour
                     List<int> hexArmy = GameData.hexGrid[backenemyArmyGrid.x, backenemyArmyGrid.y].GetComponent<HexGrid>().getHexArmy();
                     if (hexArmy.Count != 0)
                     {
+                        
                         if (BackJudgeIsEnemy(u) == true)
                         {
                             ErrorMessageBox.Show("有敌军，无法移动");
-                            yield break;
+                            isWaitingForRightClick = true;
+                            yield return null;
+                            continue;
                         }
                     }
-                
-                        Debug.Log("kkkkkkkkkkkkkkkkkkkkkkkkkk" + backenemyArmyGrid.x + "  "+ backenemyArmyGrid.y + "  " + Utils.JudgeBackDirection(backenemyArmyGrid, u));
                         if (Utils.JudgeBackDirection(backenemyArmyGrid, u) == -1 )
                         {
                             ErrorMessageBox.Show("算子只能后退");
-
-                            yield break;
-                        }
+                            isWaitingForRightClick = true;
+                            yield return null;
+                            continue;
+                    }
                     u.UpdateUnitPosition(backenemyArmyGrid);
                     
                     isWaitingForRightClick = false;
                 }
                 else yield return null;
             }
-
+            isWaitingForRightClick = true;
         }
     }
     public void afterAttack()

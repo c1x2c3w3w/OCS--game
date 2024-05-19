@@ -353,6 +353,7 @@
 "Assets/Scripts/ChooseGUI.cs"
 "Assets/Scripts/Counter.cs"
 "Assets/Scripts/CounterImage.cs"
+"Assets/Scripts/DefenseArmy.cs"
 "Assets/Scripts/ErrorMessageBox.cs"
 "Assets/Scripts/FightArmy.cs"
 "Assets/Scripts/GameController.cs"
