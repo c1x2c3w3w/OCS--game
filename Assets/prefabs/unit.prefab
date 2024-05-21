@@ -74,7 +74,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 1
-  m_Sprite: {fileID: 21300000, guid: f4b38bc800e412c41bebd39d321e3c7b, type: 3}
+  m_Sprite: {fileID: 21300000, guid: b1a7f26cc8b1d0a46b20ef987e67b322, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -97,3 +97,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d0a3cf17abe85544aac89c86d6608160, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  row: 0
+  col: 0
+  counterID: 0
+  division: 
+  fullState: 0
+  alreadyRaiseAttack: 0
+  alreadAttacked: 0
+  finishTurnMoved: 0
+  strategyMove: 0
+  movingPoint: 0
+  remainDefense: 0

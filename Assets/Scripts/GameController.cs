@@ -20,7 +20,7 @@ public class GameController : MonoBehaviour
     bool isWaitingForLeftClick = true;
     bool backAction = false;                //  未进入战后后退
 
-    int[] selectedArmyIndex;                // 记录当前左上角GUI处被选定的部队的编号
+    public int[] selectedArmyIndex;         // 记录当前左上角GUI处被选定的部队的编号
     int[] choooseArmyIndex;                 // 记录攻击队列GUI的部队编号
     List<int> selectedJoinAttackArmyIndex;  // 记录被选定参与联合进攻的部队编号
     List<int> selectedJoinchoooseArmyIndex;
@@ -40,6 +40,7 @@ public class GameController : MonoBehaviour
     public int[] moveCount;                  // 判断转换移动模式之前是否移动
     public bool moveReady = false;           // 判断本回合是否移动
     public bool attackReady = false;          // 判断本回合是否攻击
+    public bool fightReady = false;            // 判断战斗阶段战斗状态是否结束
     private void Awake()
     {
         globalSetup();
@@ -280,6 +281,7 @@ public class GameController : MonoBehaviour
         TurnPlayer currentPlayer = GameData.turnflow.turnPlayer;
         int currentHex_CounterType = GameData.units[selectedArmyIndex[0]].GetComponent<Unit>().counterID;
         int currentHex_armyNation = Counter.counter[currentHex_CounterType].nation;
+        int n = 0;
         if (currentPlayer == TurnPlayer.PlayerChinese)
         {
             if(currentHex_armyNation == 1)
@@ -306,7 +308,7 @@ public class GameController : MonoBehaviour
         // 判断移动的目标格是否与原格子相邻
         if (Utils.JudgeDirection(moveCurrentRowcol, targetRowcol) == -1)
         {
-            //ErrorMessageBox.Show("请移动到相邻格");
+            ErrorMessageBox.Show("请移动到相邻格");
             return false;
         }
         // 判断是否为空地
@@ -319,8 +321,13 @@ public class GameController : MonoBehaviour
                 ErrorMessageBox.Show("被阻挡无法移动");
                 return false;
             }
-            if((armyInTargetHexGrid.Count + selectedArmyIndex.Length) > 4)
+            for(int i = 0; i < selectedArmyIndex.Length; i++)
             {
+                if (selectedArmyIndex[i] != -1) n++;            // 记录左上角GUI实际存在算子的个数
+            }
+            if((armyInTargetHexGrid.Count + n) > 4)
+            {
+                Debug.Log(armyInTargetHexGrid.Count +"  "+ n);
                 ErrorMessageBox.Show("格子部队已满");
                 return false;
             }
@@ -531,6 +538,8 @@ public class GameController : MonoBehaviour
             int currentMP = units.movingPoint;
             int pointNeeded = MovingPointsNeeded(targetRowcol, containTank, currentMP);
             unit.useMovingPoint(pointNeeded);
+            moveReady = true;
+            unit.finishTurnMoved = moveReady;
         }
         }
 
@@ -753,8 +762,11 @@ public class GameController : MonoBehaviour
     public void OnBtnClearAttackList()
     {
         // 清除当前的 “进攻部队的队列”
-        selectedJoinAttackArmyIndex.Clear();
-        choooseArmyIndex = GetComponent<ChooseGUI>().showChooseArmy(selectedJoinAttackArmyIndex, enemyInTargetHexGrid);
+        if(selectedJoinAttackArmyIndex.Count >0)
+        {
+            selectedJoinAttackArmyIndex.Clear();
+            choooseArmyIndex = GetComponent<ChooseGUI>().showChooseArmy(selectedJoinAttackArmyIndex, enemyInTargetHexGrid);
+        }
         MessageBox.Show("队列已清除");
     }
     public void OnBtnAttack()
@@ -766,6 +778,7 @@ public class GameController : MonoBehaviour
         // 结算进攻结果
         if (CanAttackArmy(enemyArmyGrid))
         {
+            fightReady = false;
             Execute_Attack_Action(enemyArmyGrid);
         }
         // 进攻结果结算完成后
@@ -792,6 +805,7 @@ public class GameController : MonoBehaviour
             
             GameData.turnflow.GoIntoMoveStage2();
             GameData.turnflow.GoChangeTurnPlayer();
+            hideAllYellowBorder();
         }
 
         else if (GameData.turnflow.turnStage == TurnFlow.TurnStage.ReactionStage)
@@ -799,9 +813,15 @@ public class GameController : MonoBehaviour
             
             GameData.turnflow.GoIntoFightStage();
             GameData.turnflow.GoChangeTurnPlayer();
+            fightReady = false;
         }
         else if (GameData.turnflow.turnStage == TurnFlow.TurnStage.FightStage)
         {
+            if(fightReady == false)
+            {
+                ErrorMessageBox.Show("战斗状态未结束");
+                return;
+            }
             GameData.turnflow.GoIntoMoveStage();
             // 进行完一个回合后移动力恢复为原来值 
             int numUnits = UnitDataBase.Instance.units.Length;
@@ -1017,10 +1037,14 @@ public class GameController : MonoBehaviour
             if (!shouldContinue)
             {
             Debug.Log("终止MainPhase，因为enemyExist.Count == 0");
+            afterAttack();
+            choooseArmyIndex = GetComponent<ChooseGUI>().showChooseArmy(selectedJoinAttackArmyIndex, enemyInTargetHexGrid);
+            fightReady = true;
+            MessageBox.Show("战斗结算结束");
             yield break; // 提前退出协程
             }
         }
-        // 执行 FightPhase
+       
         string capturedValue2 = matchD.Groups["D"].Value;
         for (int j = 0; j < capturedValue2.Length; j += 2)
         {
@@ -1035,12 +1059,18 @@ public class GameController : MonoBehaviour
             if (!shouldContinue)
             {
                 Debug.Log("终止MainPhase，因为enemyExist.Count == 0");
+                afterAttack();
+                choooseArmyIndex = GetComponent<ChooseGUI>().showChooseArmy(selectedJoinAttackArmyIndex, enemyInTargetHexGrid);
+                fightReady = true;
+                MessageBox.Show("战斗结算结束");
                 yield break; // 提前退出协程
             }
         }
 
         afterAttack();
         choooseArmyIndex = GetComponent<ChooseGUI>().showChooseArmy(selectedJoinAttackArmyIndex, enemyInTargetHexGrid);
+        fightReady = true;
+
     }
     IEnumerator FightPhase(string c, System.Action<bool> callback)
     {

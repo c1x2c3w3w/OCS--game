@@ -14,10 +14,14 @@ public class ChooseGUI : MonoBehaviour
         for (int i = 0; i < 10; i++)
         {
             FightArmy[i] = GameObject.Find("FightArmy" + i.ToString());
+            GameObject redRectBorder = Utils.getChildObject(FightArmy[i], "RedSquareBorder");
+            redRectBorder.GetComponent<RedRectBorder>().setSelectedState2(false);
         }
         for (int i = 0; i < 5; i++)
         {
             DefenseArmy[i] = GameObject.Find("DefenseArmy" + i.ToString());
+            GameObject redRectBorder = Utils.getChildObject(DefenseArmy[i], "RedSquareBorder");
+            redRectBorder.GetComponent<RedRectBorder>().setSelectedState2(false);
         }
     }
 
@@ -63,10 +67,6 @@ public class ChooseGUI : MonoBehaviour
             // 更新当前 ArmyIconSelected[count] 这个部队的信息（移动力、攻击值、防守值、回合移动攻击状态等）
                 UpdateFightArmyInSelectedGrid(count, unit);
 
-                // 更新当前 部队army 变成 “被选中状态” （加上红色方框）
-                //GameObject redRectBorder = Utils.getChildObject(FightArmy[count], "Army");
-                //redRectBorder.GetComponent<RedRectBorder>().setSelectedState2(false);
-
                 count++; 
         }
         for (int j = 0; j < armyInTargetHexGrid.Count; j++)
@@ -84,11 +84,6 @@ public class ChooseGUI : MonoBehaviour
 
             // 更新当前 ArmyIconSelected[count] 这个部队的信息（移动力、攻击值、防守值、回合移动攻击状态等）
             UpdateDefenseArmyInSelectedGrid(count2, unit);
-
-            // 更新当前 部队army 变成 “被选中状态” （加上红色方框）
-            //GameObject redRectBorder = Utils.getChildObject(DefenseArmy[count2], "Army");
-            //redRectBorder.GetComponent<RedRectBorder>().setSelectedState2(false);
-
             count++;
             count2++;
         }

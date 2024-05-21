@@ -13,6 +13,8 @@ public class OperationGUI : MonoBehaviour
         for (int i = 0; i < 4; i++)
         {
             ArmyIconSelected[i] = GameObject.Find("ArmyIconSelected" + i.ToString());
+            GameObject redRectBorder = Utils.getChildObject(ArmyIconSelected[i], "RedRectBorder");
+            redRectBorder.GetComponent<RedRectBorder>().setSelectedState(false);
         }
      }
 
@@ -29,6 +31,7 @@ public class OperationGUI : MonoBehaviour
             GameObject redRectBorder = Utils.getChildObject(ArmyIconSelected[i], "RedRectBorder");
             redRectBorder.GetComponent<RedRectBorder>().setSelectedState(false);
             selectedArmyIndex[i] = -1;   // 代表部队编号 不存在
+
         }
 
         for (int i = 0; i < GameData.units.Length; i++)
@@ -37,18 +40,23 @@ public class OperationGUI : MonoBehaviour
             Unit u = GameData.units[i].GetComponent<Unit>();
             if (u.row == rowcol.x && u.col == rowcol.y)
             {
+
                 selectedArmyIndex[count] = i;   //记录下第count个army的部队编号
                 GameObject gobj = ArmyIconSelected[count];
 
                 Sprite spriteBG = GetComponent<CounterImage>().getCounterPicture(u.counterID); //  获得 sprite
                 gobj.GetComponent<Image>().sprite = spriteBG;    // GUI 游戏物体的图，换成对应的图
-                
+    
                 // 更新当前 ArmyIconSelected[count] 这个部队的信息（移动力、攻击值、防守值、回合移动攻击状态等）
                 UpdateArmyInfoInSelectedGrid(count, u);
 
-                // 更新当前 部队army 变成 “被选中状态” （加上红色方框）
-                GameObject redRectBorder = Utils.getChildObject(ArmyIconSelected[count], "RedRectBorder");
-                redRectBorder.GetComponent<RedRectBorder>().setSelectedState(true);
+                if (ArmyIconSelected[count].GetComponent<Image>().sprite != GetComponent<CounterImage>().getCounterPicture(-1))
+                {
+
+                    // 更新当前 部队army 变成 “被选中状态” （加上红色方框）
+                    GameObject redRectBorder = Utils.getChildObject(ArmyIconSelected[count], "RedRectBorder");
+                    redRectBorder.GetComponent<RedRectBorder>().setSelectedState(true);
+                }
 
                 count++;
             }
@@ -86,7 +94,9 @@ public class OperationGUI : MonoBehaviour
         if (u.remainDefense <= 0)
         {
             ArmyIconSelected[count].GetComponent<Image>().sprite = GetComponent<CounterImage>().getCounterPicture(-1);
-            textMovePoint.GetComponent<Text>().text = "移动力：" ;
+            GameObject redRectBorder = Utils.getChildObject(ArmyIconSelected[count], "RedRectBorder");
+            redRectBorder.GetComponent<RedRectBorder>().setSelectedState(false);
+            textMovePoint.GetComponent<Text>().text = "移动力：";
             textAttack.GetComponent<Text>().text = "进攻值：";
             textDefense.GetComponent<Text>().text = "防守值：";
         }

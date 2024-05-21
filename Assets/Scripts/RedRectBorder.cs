@@ -39,7 +39,6 @@ public class RedRectBorder : MonoBehaviour
     }
     public void ArmyClicked()
     {
-        
         setSelectedState(!isSelected);
         Debug.Log("ÀïÃæµÄ" + isSelected); 
     }
